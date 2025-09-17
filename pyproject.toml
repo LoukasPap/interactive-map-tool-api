@@ -1,0 +1,10 @@
+[project]
+name = "map-tool-api"
+version = "0.1.0"
+description = "API for my thesis app"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.116.1",
+    "pymongo>=4.15.0",
+]
