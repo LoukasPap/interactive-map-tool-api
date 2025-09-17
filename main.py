@@ -1,5 +1,4 @@
 from typing import Union
-from dotenv import load_dotenv
 import os
 
 from pymongo import MongoClient # pyright: ignore[reportMissingImports]
@@ -11,10 +10,9 @@ from pymongo.server_api import ServerApi # type: ignore
 app = FastAPI()
 
 
-load_dotenv()
-MONGO_URL = os.getenv("MONGO_URL")
-DB_NAME = os.getenv("DB_NAME")
-ORIGINS = os.getenv("ORIGINS")
+MONGO_URL = os.environ.get("MONGO_URL")
+DB_NAME = os.environ.get("DB_NAME")
+ORIGINS = os.environ.get("ORIGINS")
 
 
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
