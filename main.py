@@ -49,11 +49,17 @@ def serialize_doc(doc):
 @app.get("/objects")
 def get_objects():
     """Fetch all documents from the Points collection."""
-    points = [serialize_doc(doc) for doc in db["Points"].find({"Type": "object"})]
-    return {"features": points}
+    try:
+        points = [serialize_doc(doc) for doc in db["Points"].find({"Type": "object"})]
+        return {"features": points}
+    except Exception as e:
+        return {"error": "Failed to fetch objects. " + e}
 
 @app.get("/monuments")
 def get_monuments():
     """Fetch all monuments from the Points collection."""
-    points = [serialize_doc(doc) for doc in db["Points"].find({"Type": "monument"})]
-    return {"features": points}
+    try:
+        points = [serialize_doc(doc) for doc in db["Points"].find({"Type": "monument"})]
+        return {"features": points}
+    except Exception as e:
+        return {"error": "Failed to fetch monuments. " + e}
