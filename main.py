@@ -13,23 +13,25 @@ load_dotenv()
 
 app = FastAPI()
 
-MONGO_URI = os.environ.get("MONGO_URI")
-MONGO_DB_NAME = os.environ.get("MONGO_DB_NAME")
-ORIGINS = os.environ.get("ORIGINS")
+MONGODB_URI = os.environ.get("MONGODB_URI")
+MONGODB_NAME = os.environ.get("MONGODB_DB")
+ORIGINS: str = str(os.environ.get("ORIGINS"))
 
+if not MONGODB_URI:
+    raise RuntimeError("MONGO_URI not set")
 
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # React dev server
+    allow_origins=[ORIGINS],  # React dev server
     allow_credentials=True,
     allow_methods=["*"],  # allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # allow all headers (Authorization, Content-Type, etc.)
 )
 
 
-client = MongoClient(MONGO_URI, server_api=ServerApi('1'))
+client = MongoClient(MONGODB_URI, server_api=ServerApi('1'))
 db = client["Thesis"]
 
 
