@@ -10,8 +10,8 @@ from pymongo.server_api import ServerApi # type: ignore
 app = FastAPI()
 
 
-MONGO_URL = os.environ.get("MONGO_URL")
-DB_NAME = os.environ.get("DB_NAME")
+MONGO_URI = os.environ.get("MONGO_URI")
+MONGO_DB_NAME = os.environ.get("MONGO_DB_NAME")
 ORIGINS = os.environ.get("ORIGINS")
 
 
@@ -26,8 +26,8 @@ app.add_middleware(
 )
 
 
-client = MongoClient(MONGO_URL, server_api=ServerApi('1'))
-db = client[DB_NAME]
+client = MongoClient(MONGO_URI, server_api=ServerApi('1'))
+db = client[MONGO_DB_NAME]
 
 
 @app.get("/")
