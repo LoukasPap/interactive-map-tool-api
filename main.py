@@ -37,7 +37,7 @@ db = client["Thesis"]
 
 @app.get("/")
 def read_root():
-    return {"MONGO_DB_NAME": MONGO_DB_NAME, "ORIGINS": ORIGINS}
+    return {"MONGO_DB_NAME": MONGODB_NAME, "ORIGINS": ORIGINS}
 
 
 @app.get("/items/{item_id}")
