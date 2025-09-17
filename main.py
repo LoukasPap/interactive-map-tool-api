@@ -4,8 +4,8 @@ import os
 from pymongo import MongoClient # pyright: ignore[reportMissingImports]
 from fastapi import FastAPI # pyright: ignore[reportMissingImports]
 
-from pymongo.mongo_client import MongoClient # type: ignore
-from pymongo.server_api import ServerApi # type: ignore
+from dotenv import load_dotenv
+load_dotenv()
 
 app = FastAPI()
 

@@ -5,6 +5,7 @@ description = "API for my thesis app"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "dotenv>=0.9.9",
     "fastapi[standard]>=0.116.1",
     "pymongo>=4.15.0",
 ]
