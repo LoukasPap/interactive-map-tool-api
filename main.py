@@ -1,26 +1,21 @@
 from typing import Union
 import os
 
-
-from pymongo import MongoClient
 from fastapi import FastAPI
-
-from pymongo.mongo_client import MongoClient
-from pymongo.server_api import ServerApi
+from fastapi.middleware.cors import CORSMiddleware
 
 from dotenv import load_dotenv
 load_dotenv()
 
+from db import get_db  # Import the singleton db accessor
+
 app = FastAPI()
 
-MONGODB_URI = os.environ.get("MONGODB_URI")
 MONGODB_NAME = os.environ.get("MONGODB_DB")
 ORIGINS: str = str(os.environ.get("ORIGINS"))
 
-if not MONGODB_URI:
-    raise RuntimeError("MONGO_URI not set")
-
-from fastapi.middleware.cors import CORSMiddleware # type: ignore
+if not os.environ.get("MONGODB_URI"):
+    raise RuntimeError("MONGODB_URI not set")
 
 app.add_middleware(
     CORSMiddleware,
@@ -30,20 +25,15 @@ app.add_middleware(
     allow_headers=["*"],  # allow all headers (Authorization, Content-Type, etc.)
 )
 
-
-client = MongoClient(MONGODB_URI, server_api=ServerApi('1'))
-db = client["Thesis"]
-
+db = get_db()  # Use the singleton db connection
 
 @app.get("/")
 def read_root():
     return {"MONGO_DB_NAME": MONGODB_NAME, "ORIGINS": ORIGINS}
 
-
 @app.get("/items/{item_id}")
 def read_item(item_id: int, q: Union[str, None] = None):
     return {"item_id": item_id, "q": q}
-
 
 # Helper to convert ObjectId to string for JSON
 def serialize_doc(doc):
