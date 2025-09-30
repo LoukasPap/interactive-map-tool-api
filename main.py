@@ -1,13 +1,19 @@
-from typing import Union
+from typing import Union, Annotated
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
+
+from helpers import serialize_doc
 
 from dotenv import load_dotenv
 load_dotenv()
 
-from db import get_db  # Import the singleton db accessor
+from database.db import get_db  # Import the singleton db accessor
+db = get_db()
+
+import database.db_ops as dbs
+from models.TextSearchInput import TextSearchInput
 
 app = FastAPI()
 
@@ -25,30 +31,37 @@ app.add_middleware(
     allow_headers=["*"],  # allow all headers (Authorization, Content-Type, etc.)
 )
 
-db = get_db()  # Use the singleton db connection
+ # Use the singleton db connection
 
 @app.get("/")
 def read_root():
     return {"MONGO_DB_NAME": MONGODB_NAME, "ORIGINS": ORIGINS}
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
-
-# Helper to convert ObjectId to string for JSON
-def serialize_doc(doc):
-    doc["_id"] = str(doc["_id"])
-    return doc
+ 
+@app.get("/search-text")
+async def search_text(search_options: Annotated[TextSearchInput, Query()]):
+    """Search the Points collection for documents matching the text query."""
+    print(search_options.__repr__())
+    try:
+        results = await dbs.search_text(search_options.include_input, search_options.exclude_input, search_options.take_int_limit())
+        print("Total documents", len(results))
+        return {"features": results}
+    
+    except Exception as e:
+        return {"error": f"Failed to search text. {e}"}
 
 
 @app.get("/objects")
 def get_objects():
     """Fetch all documents from the Points collection."""
     try:
-        points = [serialize_doc(doc) for doc in db["Points"].find({"Type": "object"})]
+        print("Fetching all data...")
+        points = [serialize_doc(doc) for doc in db["Points"].find({})]
+        print("Fetched all data!")
         return {"features": points}
     except Exception as e:
         return {"error": f"Failed to fetch objects. {e}"}
+
 
 @app.get("/monuments")
 def get_monuments():
