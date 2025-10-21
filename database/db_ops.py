@@ -1,7 +1,6 @@
 import os
 import helpers
 from database.AtlasSearchQueryBuilder import AtlasSearchQueryBuilder
-
 from database.db import get_db  # Import the singleton db accessor
 db = get_db() 
 
@@ -30,3 +29,20 @@ async def search_text(include_input: str | None, exclude_input: str | None, docu
     results = db["Points"].aggregate(pipeline)
     
     return helpers.parse_json(results)
+
+
+async def register_user(body) -> str:        
+    db["Users"].insert_one(body)
+    return "OK"
+
+def user_exists(username) -> bool:
+    user = db["Users"].find_one({"username": username})
+    if user: return True
+    return False
+
+def get_user(username) -> dict | None:
+    user = db["Users"].find_one({"username": username})
+    if user:
+        user = helpers.serialize_doc(user)
+        return user
+    return None
