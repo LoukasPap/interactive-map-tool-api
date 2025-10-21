@@ -54,9 +54,18 @@ async def search_text(search_options: Annotated[TextSearchInput, Query()]):
         results = await dbs.search_text(search_options.include_input, search_options.exclude_input, search_options.take_int_limit())
         print("Total documents", len(results))
         return {"features": results}
-    
     except Exception as e:
         return {"error": f"Failed to search text. {e}"}
+
+
+projection: dict[str, int] = {"_id": 0, "Name": 1, "Title": 1, "Type": 1, "geometry": 1, "Era": 1, 
+                                "InventoryNumberLetter": 1, "MaterialCategory": 1, "CleanCondition": 1, 
+                                "SectionNumber": 1, "SectionNumberLetter": 1, "SectionNumberNumber": 1, "Images": 1}
+
+@app.get("/findings", tags=["findings"])
+async def get_findings_ids():
+    res = db["Points"].find({}, projection).to_list()
+    return { "features": res }
 
 
 # Authorization Routes
