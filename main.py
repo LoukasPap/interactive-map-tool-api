@@ -71,14 +71,15 @@ async def get_findings_ids():
 
 @app.get("/findings/{name}", tags=["findings"])
 def get_finding_by_name(name: Annotated[str, Path(title="The name of the finding to retrieve")]):
-    res = db["Points"].find_one({"Name": name})
+    print(name)
+    res = db["Points"].find_one({"Name": name.replace("%20", " ")})
     if res:
         serialized_doc = serialize_doc(res)
         return {"point": serialized_doc}
     else:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Finding with Name {name} not found"
+            detail=f"Finding with Name {name.replace("%20", " ")} not found"
         )
 
 
