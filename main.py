@@ -39,14 +39,15 @@ app.add_middleware(
     allow_headers=["*"],  # allow all headers (Authorization, Content-Type, etc.)
 )
 
- # Use the singleton db connection
 
 @app.get("/")
 def read_root():
-    return {"MONGO_DB_NAME": MONGODB_NAME, "ORIGINS": ORIGINS}
+    return {"Hello": "World!"}
 
- 
-@app.get("/search-text")
+
+# Findings Routes
+
+@app.get("/search-text", tags=["findings"])
 async def search_text(search_options: Annotated[TextSearchInput, Query()]):
     """Search the Points collection for documents matching the text query."""
     print(search_options.__repr__())
