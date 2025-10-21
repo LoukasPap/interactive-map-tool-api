@@ -71,7 +71,7 @@ async def get_findings_ids():
 
 @app.get("/findings/{Name}", tags=["findings"])
 def get_finding_by_name(Name: str):
-    res = db["Points"].find_one({"Name": Name})
+    res = db["Points"].find_one({"Name": Name.replace("%", " ")})
     if res:
         serialized_doc = serialize_doc(res)
         return {"point": serialized_doc}
