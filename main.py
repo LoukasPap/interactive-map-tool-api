@@ -111,5 +111,48 @@ async def verify_token(current_user: dict = Depends(auth_module.get_current_user
     return {"valid": True, "user": {"username": current_user.get("username")}}
 
 
+
+# Collections Routes
+@collection_router.post("", tags=["collections"])
+async def create_collection(collection: CollectionCreate):
+    print("Creating collection:", collection)
+    db["Collections"].insert_one(collection.model_dump())
+    return {"message": f"Collection created {collection}"}
+
+
+@collection_router.put("/{id}", tags=["collections"])
+async def update_collection(updatedCollection: Collection, id: Annotated[str, Path(title="The id of the collection to update")]):
+    print("Inside", id, "----", updatedCollection)
+    db["Collections"].find_one_and_update(
+        {"id": id},
+        {"$set": updatedCollection.model_dump()}
+    )
+    
+    return {"message": f"Collection with id {id} updated"}
+
+
+@collection_router.delete("/{id}", tags=["collections"])
+async def delete_collection(id: Annotated[str, Path(title="The id of the collection to delete")]):
+    res = db["Collections"].find_one_and_delete({"id": id})
+    if res:
+        return {"message": f"Collection with {id} deleted"}
+    
+    return {"message": f"Collection with {id} not found"}
+
+
+@collection_router.get("/{owner}", tags=["collections"])
+async def get_collections(owner: Annotated[str, Path(title="The username of the user")]):
+    res = db["Collections"].find({"owner": owner})
+    if res is not None:
+        docs = [serialize_doc(doc) for doc in res]
+        return {"data": docs}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No collections found for owner {owner}"
+        )
+        
+
+
 app.include_router(auth_router)
 app.include_router(collection_router)
