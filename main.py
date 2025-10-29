@@ -25,6 +25,7 @@ import auth as auth_module
 from datetime import datetime
 
 app = FastAPI()
+findings_router = APIRouter(prefix="/findings")
 auth_router = APIRouter(prefix="/auth")
 collection_router = APIRouter(prefix="/collections")
 
@@ -50,8 +51,8 @@ def read_root():
 
 # Findings Routes
 
-@app.get("/search-text", tags=["findings"])
-async def search_text(search_options: Annotated[TextSearchInput, Query()]):
+@findings_router.get("/search-text", tags=["Findings"])
+async def search_text(search_options: Annotated[TextSearch, Query()]):
     """Search the Points collection for documents matching the text query."""
     print(search_options.__repr__())
     try:
@@ -66,13 +67,13 @@ projection: dict[str, int] = {"_id": 0, "Name": 1, "Title": 1, "Type": 1, "geome
                                 "InventoryNumberLetter": 1, "MaterialCategory": 1, "CleanCondition": 1, 
                                 "SectionNumber": 1, "SectionNumberLetter": 1, "SectionNumberNumber": 1, "Images": 1}
 
-@app.get("/findings", tags=["findings"])
-async def get_findings_ids():
+@findings_router.get("/", tags=["Findings"])
+async def get_findings():
     res = db["Points"].find({}, projection).to_list()
     return { "features": res }
 
 
-@app.get("/findings/{name}", tags=["findings"])
+@findings_router.get("/{name}", tags=["Findings"])
 def get_finding_by_name(name: Annotated[str, Path(title="The name of the finding to retrieve")]):
     print(name)
     res = db["Points"].find_one({"Name": name.replace("%20", " ")})
@@ -182,6 +183,6 @@ async def get_collections(owner: Annotated[str, Path(title="The username of the 
         )
         
 
-
+app.include_router(findings_router)
 app.include_router(auth_router)
 app.include_router(collection_router)
