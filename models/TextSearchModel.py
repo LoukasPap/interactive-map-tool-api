@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field
-from typing import Annotated
 
-class TextSearchInput(BaseModel):
+class TextSearch(BaseModel):
     include_input: str | None = Field(default=None, alias="includeInput")
     exclude_input: str | None = Field(default=None, alias="excludeInput")
     limit: str | None = Field(default=None)

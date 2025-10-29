@@ -13,9 +13,12 @@ load_dotenv()
 from database.db import get_db  # Import the singleton db accessor
 db = get_db()
 
-import database.db_ops as dbs
-from models.TextSearchInput import TextSearchInput
+from models.TextSearchModel import TextSearch
 from models.UserModels import *
+from models.CollectionsModels import *
+
+from helpers import serialize_doc
+
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 import auth as auth_module
@@ -88,7 +91,7 @@ def get_finding_by_name(name: Annotated[str, Path(title="The name of the finding
 # Authorization Routes
 
 @auth_router.post("/register", tags=["authorization"])
-async def register_user(body: UserRegister):
+async def register(body: User):
     """Register new user in the database"""
     
     print("Begin Register:", body)
