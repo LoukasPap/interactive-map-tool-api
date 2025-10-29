@@ -8,9 +8,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 MONGODB_NAME = os.environ.get("MONGODB_DB")
-MONGODB_ATLAS_SEACH_FIELDS = ["Title","Description","Notes", "Obverse", "Reverse", "Name", "Context"]
 ORIGINS: str = str(os.environ.get("ORIGINS"))
 
+MONGODB_ATLAS_SEACH_FIELDS = ["Title","Description","Notes", "Obverse", "Reverse", "Name", "Context"]
 
 async def search_text(include_input: str | None, exclude_input: str | None, documents_limit: int | None):
     output = helpers.format_search_input(include_input, exclude_input)
@@ -25,7 +25,6 @@ async def search_text(include_input: str | None, exclude_input: str | None, docu
         limit=documents_limit
     )
     
-    print(pipeline)
     results = db["Points"].aggregate(pipeline)
     
     return helpers.parse_json(results)

@@ -1,4 +1,3 @@
-from copy import deepcopy
 from typing import List, Optional, Dict, Any
 
 class AtlasSearchQueryBuilder:
@@ -93,10 +92,10 @@ class AtlasSearchQueryBuilder:
 
         pipeline = [search_stage,
                     {"$addFields": {"score": {"$meta": "searchScore"}}},
-                    # {"$sort": {"score": -1}}
                     ]
 
         if limit:
             pipeline.append({"$limit": int(limit)})
 
         return pipeline
+

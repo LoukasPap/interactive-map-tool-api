@@ -29,7 +29,6 @@ def separate_keywords_phrases(input: str) -> Tuple[list[str], list[str]]:
      
     return keywords, phrases
 
-# Helper to convert ObjectId to string for JSON
 def serialize_doc(doc):
     doc["_id"] = str(doc["_id"])
     return doc

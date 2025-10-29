@@ -1,11 +1,14 @@
 import os
-from datetime import datetime, timedelta, timezone
+
 from typing import Optional, Dict, Any
 
 import jwt
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+import bcrypt
 from passlib.context import CryptContext
+from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends, HTTPException, status
+
+from datetime import datetime, timedelta, timezone
 
 import database.db_ops as dbs
 
@@ -21,7 +24,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-import bcrypt
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(
@@ -43,7 +45,6 @@ def create_access_token(subject: str, expires_delta: Optional[timedelta] = None)
     to_encode["exp"] = expire
     
     token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    # jwt.encode may return bytes in some libs, ensure str
     if isinstance(token, bytes):
         token = token.decode("utf-8")
     return token
@@ -58,15 +59,13 @@ def authenticate_user(username: str, password: str) -> Optional[Dict[str, Any]]:
     user = dbs.get_user(username)
     if not user:
         return None
-    stored_pw = user["password"] # pyright: ignore[reportArgumentType]
+    stored_pw = user["password"]
     if stored_pw is None:
         return None
-    # verify using passlib helper
     try:
         if verify_password(password, stored_pw):
-            return user # type: ignore
+            return user
     except Exception:
-        # if verify fails, treat as non-authenticated
         return None
     return None
 

@@ -1,15 +1,14 @@
-from fastapi import FastAPI, status, APIRouter, HTTPException, Query, Path, Depends
-
-from typing import Annotated
 import os
 
+from fastapi import FastAPI, status, APIRouter, HTTPException, Query, Path, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
-from helpers import serialize_doc
+from typing import Annotated
 
 from dotenv import load_dotenv
 load_dotenv()
 
+import database.db_ops as dbs
 from database.db import get_db  # Import the singleton db accessor
 db = get_db()
 
@@ -22,42 +21,29 @@ from helpers import serialize_doc
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 import auth as auth_module
-from datetime import datetime
+
 
 app = FastAPI()
 findings_router = APIRouter(prefix="/findings")
 auth_router = APIRouter(prefix="/auth")
 collection_router = APIRouter(prefix="/collections")
 
-MONGODB_NAME = os.environ.get("MONGODB_DB")
 ORIGINS: str = str(os.environ.get("ORIGINS"))
-
-if not os.environ.get("MONGODB_URI"):
-    raise RuntimeError("MONGODB_URI not set")
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[ORIGINS],  # React dev server
+    allow_origins=[ORIGINS],
     allow_credentials=True,
-    allow_methods=["*"],  # allow all HTTP methods (GET, POST, etc.)
-    allow_headers=["*"],  # allow all headers (Authorization, Content-Type, etc.)
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
-
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World!"}
-
 
 # Findings Routes
 
 @findings_router.get("/search-text", tags=["Findings"])
 async def search_text(search_options: Annotated[TextSearch, Query()]):
     """Search the Points collection for documents matching the text query."""
-    print(search_options.__repr__())
     try:
         results = await dbs.search_text(search_options.include_input, search_options.exclude_input, search_options.take_int_limit())
-        print("Total documents", len(results))
         return {"features": results}
     except Exception as e:
         return {"error": f"Failed to search text. {e}"}
@@ -87,11 +73,9 @@ def get_finding_by_name(name: Annotated[str, Path(title="The name of the finding
         )
 
 
-
-
 # Authorization Routes
 
-@auth_router.post("/register", tags=["authorization"])
+@auth_router.post("/register", tags=["Authorization"])
 async def register(body: User):
     """Register new user in the database"""
     
@@ -107,12 +91,10 @@ async def register(body: User):
     user_data["password"] = auth_module.get_password_hash(user_data["password"])
     await dbs.register_user(user_data)
     
-    print("Finish Registering:")
-    
     return JSONResponse(status_code=200, content={"message": "User created"})
 
 
-@auth_router.post("/login", tags=["authorization"])
+@auth_router.post("/login", tags=["Authorization"])
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     """
     Login endpoint that returns a JWT access token.
@@ -133,8 +115,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@auth_router.get("/verify", tags=["authorization"])
-async def verify_token(current_user: dict = Depends(auth_module.get_current_user)):
+@auth_router.get("/verify", tags=["Authorization"])
+async def verify_user(current_user: dict = Depends(auth_module.get_current_user)):
     """
     Verify the provided bearer token. Returns minimal user info if valid.
     """
@@ -143,16 +125,14 @@ async def verify_token(current_user: dict = Depends(auth_module.get_current_user
 
 
 # Collections Routes
-@collection_router.post("", tags=["collections"])
+@collection_router.post("", tags=["Collections"])
 async def create_collection(collection: CollectionCreate):
-    print("Creating collection:", collection)
     db["Collections"].insert_one(collection.model_dump())
     return {"message": f"Collection created {collection}"}
 
 
-@collection_router.put("/{id}", tags=["collections"])
+@collection_router.put("/{id}", tags=["Collections"])
 async def update_collection(updatedCollection: Collection, id: Annotated[str, Path(title="The id of the collection to update")]):
-    print("Inside", id, "----", updatedCollection)
     db["Collections"].find_one_and_update(
         {"id": id},
         {"$set": updatedCollection.model_dump()}
@@ -161,7 +141,7 @@ async def update_collection(updatedCollection: Collection, id: Annotated[str, Pa
     return {"message": f"Collection with id {id} updated"}
 
 
-@collection_router.delete("/{id}", tags=["collections"])
+@collection_router.delete("/{id}", tags=["Collections"])
 async def delete_collection(id: Annotated[str, Path(title="The id of the collection to delete")]):
     res = db["Collections"].find_one_and_delete({"id": id})
     if res:
@@ -170,8 +150,8 @@ async def delete_collection(id: Annotated[str, Path(title="The id of the collect
     return {"message": f"Collection with {id} not found"}
 
 
-@collection_router.get("/{owner}", tags=["collections"])
-async def get_collections(owner: Annotated[str, Path(title="The username of the user")]):
+@collection_router.get("/{owner}", tags=["Collections"])
+async def get_user_collections(owner: Annotated[str, Path(title="The username of the user")]):
     res = db["Collections"].find({"owner": owner})
     if res is not None:
         docs = [serialize_doc(doc) for doc in res]
