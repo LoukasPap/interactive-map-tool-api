@@ -1,5 +1,6 @@
 [project]
 name = "map-tool-api"
+app = "main:app"
 version = "0.1.0"
 description = "API for my thesis app"
 readme = "README.md"
